@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 
 // CORS configuration
 const allowedOrigins = [
-  'https://lost-and-found-project.onrender.com',
+  'https://sheet-fqwb.onrender.com',
   'https://lost-and-found-project-3.onrender.com',
   'http://localhost:3000',
   'http://127.0.0.1:5501',
@@ -64,7 +64,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on ${process.env.NODE_ENV === 'production' ? 'https://lost-and-found-project-3.onrender.com' : `http://localhost:${port}`}`);
+  console.log(`Server is running on ${process.env.NODE_ENV === 'production' ? 'https://sheet-fqwb.onrender.com' : `http://localhost:${port}`}`);
 });
 
 module.exports = app;
