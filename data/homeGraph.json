@@ -1,5 +1,4 @@
 {
-    "labels": ["Phones", "Wallets", "Keys", "Purses", "Computers", "Others"],
-    "values": [40, 88, 60, 45, 10, 6]
-  }
-  
+  "labels": ["January", "February", "March", "April"],
+  "values": [10, 20, 30, 40]
+}

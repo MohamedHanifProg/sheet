@@ -6,16 +6,9 @@ const path = require('path');
 const fs = require('fs');
 const logger = require('./logger'); // Import the logger
 
-router.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // This allows all origins, which is generally not recommended for production but will solve the CORS issue for now.
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
-
 // Determine if the environment is production
 const isProduction = process.env.NODE_ENV === 'production';
-const baseUrl = isProduction ? 'https://sheet-fqwb.onrender.com' : 'http://localhost:3000';
+const baseUrl = isProduction ? 'https://lost-and-found-project.onrender.com' : 'http://localhost:3000';
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({
@@ -53,7 +46,7 @@ router.get('/all-items', (req, res) => {
   pool.query('SELECT * FROM tbl_123_posts', (err, results) => {
     if (err) {
       logger.error(`Error fetching all items: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     logger.info('Fetched all items');
     res.json(results);
@@ -65,7 +58,7 @@ router.get('/items', (req, res) => {
   pool.query('SELECT * FROM tbl_123_posts LIMIT 4', (err, results) => {
     if (err) {
       logger.error(`Error fetching limited items: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     logger.info('Fetched limited items');
     res.json(results);
@@ -81,7 +74,7 @@ router.get('/user-items', (req, res) => {
   pool.query('SELECT * FROM tbl_123_posts WHERE userId = ?', [userId], (err, results) => {
     if (err) {
       logger.error(`Error fetching user items: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     logger.info(`Fetched items for user ${userId}`);
     res.json(results);
@@ -94,7 +87,7 @@ router.get('/items/:itemName', (req, res) => {
   pool.query('SELECT * FROM tbl_123_posts WHERE itemName = ?', [itemName], (err, results) => {
     if (err) {
       logger.error(`Error fetching item by name: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     if (results.length > 0) {
       logger.info(`Fetched item: ${itemName}`);
@@ -113,7 +106,7 @@ router.post('/items', (req, res) => {
   pool.query('INSERT INTO tbl_123_posts SET ?', newItem, (err, result) => {
     if (err) {
       logger.error(`Error adding new item: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     logger.info(`Item added with ID: ${result.insertId}`);
     res.json({ id: result.insertId, ...newItem });
@@ -128,7 +121,7 @@ router.put('/items/:id', (req, res) => {
   pool.query('UPDATE tbl_123_posts SET ? WHERE id = ?', [updatedItem, itemId], (err) => {
     if (err) {
       logger.error(`Error updating item ID ${itemId}: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     logger.info(`Item ID ${itemId} updated`);
     res.json({ success: true });
@@ -142,7 +135,7 @@ router.delete('/items/:id', (req, res) => {
   pool.query('SELECT imageUrl FROM tbl_123_posts WHERE id = ?', [itemId], (err, results) => {
     if (err) {
       logger.error(`Error fetching item for deletion: ${err.message}`);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
     if (results.length === 0) {
       return res.status(404).json({ error: 'Item not found' });
@@ -155,7 +148,7 @@ router.delete('/items/:id', (req, res) => {
     pool.query('DELETE FROM tbl_123_posts WHERE id = ?', [itemId], (err) => {
       if (err) {
         logger.error(`Error deleting item: ${err.message}`);
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: 'Internal Server Error' });
       }
 
       // Delete the image file if it exists
