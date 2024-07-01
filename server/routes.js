@@ -171,10 +171,12 @@ router.delete('/items/:id', (req, res) => {
     });
   });
 });
+
 // Serve the profileGraph.json file
 router.get('/profile-graph-data', (req, res) => {
   res.sendFile(path.join(__dirname, 'data', 'profileGraph.json'));
 });
+
 // Serve the homeGraph.json file
 router.get('/home-graph-data', (req, res) => {
   res.sendFile(path.join(__dirname, 'data', 'homeGraph.json'));
