@@ -64,7 +64,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on ${process.env.NODE_ENV === 'production' ? 'https://sheet-fqwb.onrender.com' : `http://localhost:${port}`}`);
+  console.log(`Server is running on ${process.env.NODE_ENV === 'production' ? process.env.RENDER_EXTERNAL_URL : `http://localhost:${port}`}`);
 });
 
 module.exports = app;
