@@ -5,17 +5,17 @@ const path = require('path');
 const routes = require('./routes');
 const logger = require('./logger');
 const fs = require('fs');
+require('dotenv').config(); // Load environment variables
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 // CORS configuration
 const allowedOrigins = [
-  'https://sheet-fqwb.onrender.com',
-  'https://lost-and-found-project-3.onrender.com',
+  process.env.RENDER_EXTERNAL_URL,
   'http://localhost:3000',
   'http://127.0.0.1:5501',
-  'http://se.shenkar.ac.il/students/2023-2024/web1/dev123/index.html'
+  'http://se.shenkar.ac.il'
 ];
 
 app.use(cors({
