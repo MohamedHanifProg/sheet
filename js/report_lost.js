@@ -1,10 +1,9 @@
-
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById('reportLostForm');
   form.addEventListener('submit', handleFormSubmit);
 });
 
-const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : 'https://sheet-fqwb.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : `https://${window.location.hostname}/api`;
 
 function getItemDataFromForm(formData, imageUrl) {
   const userId = 1; 
