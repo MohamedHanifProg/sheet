@@ -1,4 +1,4 @@
-const API_URL = window.location.origin + '/api';
+
 
 document.addEventListener("DOMContentLoaded", function () {
     initDataFetching();
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let originalData = [];
 
 function initDataFetching() {
-    fetch(`${API_URL}/all-items`)
+    fetch('https://sheet-fqwb.onrender.com/api/all-items') 
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');

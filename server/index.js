@@ -5,14 +5,14 @@ const path = require('path');
 const routes = require('./routes');
 const logger = require('./logger');
 const fs = require('fs');
-require('dotenv').config(); // Load environment variables
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 // CORS configuration
 const allowedOrigins = [
-  process.env.RENDER_EXTERNAL_URL,
+  'https://sheet-fqwb.onrender.com',
+  'https://lost-and-found-project-3.onrender.com',
   'http://localhost:3000',
   'http://127.0.0.1:5501',
   'http://se.shenkar.ac.il'
@@ -35,9 +35,6 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files from the main directory
 app.use(express.static(path.join(__dirname, '..')));
-app.use(express.static(path.join(__dirname, '..', 'css')));
-app.use(express.static(path.join(__dirname, '..', 'js')));
-app.use(express.static(path.join(__dirname, '..', 'images')));
 
 // Serve uploads directory
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -67,7 +64,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on ${process.env.NODE_ENV === 'production' ? process.env.RENDER_EXTERNAL_URL : `http://localhost:${port}`}`);
+  console.log(`Server is running on ${process.env.NODE_ENV === 'production' ? 'https://sheet-fqwb.onrender.com' : `http://localhost:${port}`}`);
 });
 
 module.exports = app;
