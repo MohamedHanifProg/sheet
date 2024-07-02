@@ -2,8 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const routes = require('./server/routes');
-const logger = require('./server/logger');
+const routes = require('./routes');
+const logger = require('./logger');
 const fs = require('fs');
 
 const app = express();
@@ -34,10 +34,10 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files from the main directory
-app.use(express.static(path.join(__dirname, '.')));
-app.use(express.static(path.join(__dirname, 'css')));
-app.use(express.static(path.join(__dirname, 'js')));
-app.use(express.static(path.join(__dirname, 'images')));
+app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '..', 'css')));
+app.use(express.static(path.join(__dirname, '..', 'js')));
+app.use(express.static(path.join(__dirname, '..', 'images')));
 
 // Serve uploads directory
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -48,7 +48,7 @@ app.use('/uploads', express.static(uploadsDir));
 
 // Serve index.html for the root URL
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
 // API routes
