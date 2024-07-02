@@ -1,4 +1,6 @@
-const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : `https://${window.location.hostname}/api`;
+const API_URL = window.location.protocol === 'http:' 
+    ? `http://${window.location.hostname}/api` 
+    : `https://${window.location.hostname}/api`;
 
 window.onload = () => {
     populateItemsTable();
