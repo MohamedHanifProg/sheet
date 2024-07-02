@@ -7,7 +7,12 @@ window.onload = () => {
 
 const populateItemsTable = () => {
     fetch(`${API_URL}/items`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             const itemsTable = document.getElementById('itemsTable');
             itemsTable.innerHTML = '';
@@ -43,7 +48,12 @@ const createStatusCell = (status) => {
 
 const initializeChart = () => {
     fetch(`${API_URL}/home-graph-data`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             const ctx = document.getElementById('itemsChart').getContext('2d');
             new Chart(ctx, {
