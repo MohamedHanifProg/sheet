@@ -6,6 +6,7 @@ const logger = require('./logger');
 
 // Endpoint to fetch all items
 router.get('/all-items', (req, res) => {
+  logger.info('GET /all-items');
   pool.query('SELECT * FROM tbl_123_posts', (err, results) => {
     if (err) {
       logger.error(`Error fetching all items: ${err.message}`);
@@ -18,6 +19,7 @@ router.get('/all-items', (req, res) => {
 
 // Endpoint to fetch limited items
 router.get('/items', (req, res) => {
+  logger.info('GET /items');
   pool.query('SELECT * FROM tbl_123_posts LIMIT 4', (err, results) => {
     if (err) {
       logger.error(`Error fetching limited items: ${err.message}`);
@@ -31,7 +33,9 @@ router.get('/items', (req, res) => {
 // Endpoint to fetch items for a specific user
 router.get('/user-items', (req, res) => {
   const userId = req.query.userId;
+  logger.info(`GET /user-items?userId=${userId}`);
   if (!userId) {
+    logger.error('Missing userId query parameter');
     return res.status(400).json({ error: 'Missing userId query parameter' });
   }
   pool.query('SELECT * FROM tbl_123_posts WHERE userId = ?', [userId], (err, results) => {
@@ -47,6 +51,7 @@ router.get('/user-items', (req, res) => {
 // Endpoint to fetch a specific item by name
 router.get('/items/:itemName', (req, res) => {
   const itemName = req.params.itemName;
+  logger.info(`GET /items/${itemName}`);
   pool.query('SELECT * FROM tbl_123_posts WHERE itemName = ?', [itemName], (err, results) => {
     if (err) {
       logger.error(`Error fetching item by name: ${err.message}`);
@@ -65,7 +70,7 @@ router.get('/items/:itemName', (req, res) => {
 // Endpoint to add a new item
 router.post('/items', (req, res) => {
   const newItem = req.body;
-  logger.info(`Adding new item: ${JSON.stringify(newItem)}`);
+  logger.info(`POST /items: ${JSON.stringify(newItem)}`);
   pool.query('INSERT INTO tbl_123_posts SET ?', newItem, (err, result) => {
     if (err) {
       logger.error(`Error adding new item: ${err.message}`);
@@ -80,7 +85,7 @@ router.post('/items', (req, res) => {
 router.put('/items/:id', (req, res) => {
   const itemId = req.params.id;
   const updatedItem = req.body;
-  logger.info(`Updating item ID ${itemId}: ${JSON.stringify(updatedItem)}`);
+  logger.info(`PUT /items/${itemId}: ${JSON.stringify(updatedItem)}`);
   pool.query('UPDATE tbl_123_posts SET ? WHERE id = ?', [updatedItem, itemId], (err) => {
     if (err) {
       logger.error(`Error updating item ID ${itemId}: ${err.message}`);
@@ -94,6 +99,7 @@ router.put('/items/:id', (req, res) => {
 // Endpoint to delete an item and its image
 router.delete('/items/:id', (req, res) => {
   const itemId = req.params.id;
+  logger.info(`DELETE /items/${itemId}`);
   pool.query('DELETE FROM tbl_123_posts WHERE id = ?', [itemId], (err) => {
     if (err) {
       logger.error(`Error deleting item: ${err.message}`);
@@ -107,6 +113,7 @@ router.delete('/items/:id', (req, res) => {
 // Serve the profileGraph.json file
 router.get('/profile-graph-data', (req, res) => {
   const filePath = path.join(__dirname, '..', 'data', 'profileGraph.json');
+  logger.info('GET /profile-graph-data');
   res.sendFile(filePath, (err) => {
     if (err) {
       logger.error(`Error serving profileGraph.json: ${err.message}`);
@@ -118,6 +125,7 @@ router.get('/profile-graph-data', (req, res) => {
 // Serve the homeGraph.json file
 router.get('/home-graph-data', (req, res) => {
   const filePath = path.join(__dirname, '..', 'data', 'homeGraph.json');
+  logger.info('GET /home-graph-data');
   res.sendFile(filePath, (err) => {
     if (err) {
       logger.error(`Error serving homeGraph.json: ${err.message}`);
