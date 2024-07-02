@@ -1,45 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('./db');
-const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
-const logger = require('./logger'); // Import the logger
-
-// Determine if the environment is production
-const isProduction = process.env.NODE_ENV === 'production';
-const baseUrl = isProduction ? process.env.RENDER_EXTERNAL_URL : 'http://localhost:3000';
-
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-const upload = multer({ storage: storage });
-
-// Endpoint to upload an image
-router.post('/upload', upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      logger.warn('No file uploaded');
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-    logger.info(`Image uploaded: ${imageUrl}`);
-    res.json({ imageUrl });
-  } catch (err) {
-    logger.error(`Error handling file upload: ${err.message}`);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+const pool = require('./db');  // Ensure db.js is correctly configured
+const logger = require('./logger');
 
 // Endpoint to fetch all items
 router.get('/all-items', (req, res) => {
@@ -131,37 +94,13 @@ router.put('/items/:id', (req, res) => {
 // Endpoint to delete an item and its image
 router.delete('/items/:id', (req, res) => {
   const itemId = req.params.id;
-  // First, fetch the item to get the image URL
-  pool.query('SELECT imageUrl FROM tbl_123_posts WHERE id = ?', [itemId], (err, results) => {
+  pool.query('DELETE FROM tbl_123_posts WHERE id = ?', [itemId], (err) => {
     if (err) {
-      logger.error(`Error fetching item for deletion: ${err.message}`);
+      logger.error(`Error deleting item: ${err.message}`);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Item not found' });
-    }
-
-    const imageUrl = results[0].imageUrl;
-    const imagePath = path.join(__dirname, 'uploads', path.basename(imageUrl));
-
-    // Delete the item from the database
-    pool.query('DELETE FROM tbl_123_posts WHERE id = ?', [itemId], (err) => {
-      if (err) {
-        logger.error(`Error deleting item: ${err.message}`);
-        return res.status(500).json({ error: 'Internal Server Error' });
-      }
-
-      // Delete the image file if it exists
-      fs.unlink(imagePath, (err) => {
-        if (err) {
-          logger.error(`Error deleting image file: ${err.message}`);
-        } else {
-          logger.info('Image file deleted successfully');
-        }
-      });
-
-      res.json({ success: true });
-    });
+    logger.info(`Item ID ${itemId} deleted`);
+    res.json({ success: true });
   });
 });
 
@@ -186,6 +125,5 @@ router.get('/home-graph-data', (req, res) => {
     }
   });
 });
-
 
 module.exports = router;
