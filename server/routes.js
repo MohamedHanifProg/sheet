@@ -4,7 +4,7 @@ const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const logger = require('./logger'); // Import the logger
+const logger = require('./logger');
 
 // Determine if the environment is production
 const isProduction = process.env.NODE_ENV === 'production';
@@ -25,6 +25,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// Serve static files from the 'uploads' directory
+router.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Endpoint to upload an image
 router.post('/upload', upload.single('image'), (req, res) => {
   try {
@@ -40,6 +43,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 // Endpoint to fetch all items
 router.get('/all-items', (req, res) => {
@@ -81,19 +85,19 @@ router.get('/user-items', (req, res) => {
   });
 });
 
-// Endpoint to fetch a specific item by name
-router.get('/items/:itemName', (req, res) => {
-  const itemName = req.params.itemName;
-  pool.query('SELECT * FROM tbl_123_posts WHERE itemName = ?', [itemName], (err, results) => {
+// Endpoint to fetch a specific item by id
+router.get('/items/:id', (req, res) => {
+  const itemId = req.params.id;
+  pool.query('SELECT * FROM tbl_123_posts WHERE id = ?', [itemId], (err, results) => {
     if (err) {
-      logger.error(`Error fetching item by name: ${err.message}`);
+      logger.error(`Error fetching item by id: ${err.message}`);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
     if (results.length > 0) {
-      logger.info(`Fetched item: ${itemName}`);
+      logger.info(`Fetched item with id: ${itemId}`);
       res.json(results[0]);
     } else {
-      logger.warn(`Item not found: ${itemName}`);
+      logger.warn(`Item not found with id: ${itemId}`);
       res.status(404).json({ error: 'Item not found' });
     }
   });
@@ -114,9 +118,14 @@ router.post('/items', (req, res) => {
 });
 
 // Endpoint to update an item
-router.put('/items/:id', (req, res) => {
+router.put('/items/:id', upload.none(), (req, res) => {
   const itemId = req.params.id;
   const updatedItem = req.body;
+  
+  if (updatedItem.locationLost) {
+    updatedItem.locationFound = updatedItem.locationLost; // Handle both cases
+  }
+
   logger.info(`Updating item ID ${itemId}: ${JSON.stringify(updatedItem)}`);
   pool.query('UPDATE tbl_123_posts SET ? WHERE id = ?', [updatedItem, itemId], (err) => {
     if (err) {
@@ -142,7 +151,7 @@ router.delete('/items/:id', (req, res) => {
     }
 
     const imageUrl = results[0].imageUrl;
-    const imagePath = path.join(__dirname, 'uploads', path.basename(imageUrl));
+    const imagePath = imageUrl ? path.join(__dirname, 'uploads', path.basename(imageUrl)) : null;
 
     // Delete the item from the database
     pool.query('DELETE FROM tbl_123_posts WHERE id = ?', [itemId], (err) => {
@@ -151,14 +160,16 @@ router.delete('/items/:id', (req, res) => {
         return res.status(500).json({ error: 'Internal Server Error' });
       }
 
-      // Delete the image file if it exists
-      fs.unlink(imagePath, (err) => {
-        if (err) {
-          logger.error(`Error deleting image file: ${err.message}`);
-        } else {
-          logger.info('Image file deleted successfully');
-        }
-      });
+      if (imagePath) {
+        // Delete the image file if it exists
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            logger.error(`Error deleting image file: ${err.message}`);
+          } else {
+            logger.info('Image file deleted successfully');
+          }
+        });
+      }
 
       res.json({ success: true });
     });
@@ -187,5 +198,72 @@ router.get('/home-graph-data', (req, res) => {
   });
 });
 
+
+// Endpoint to report a found item
+router.post('/found-items', upload.none(), (req, res) => {
+  const { itemName, locationFound, foundDate, category, color, description, contactEmail, contactPhone, securityQuestion, securityAnswer, imageUrl, userId } = req.body;
+
+  if (!itemName || !locationFound || !foundDate || !category || !color || !contactEmail || !contactPhone || !securityQuestion || !securityAnswer) {
+    return res.status(400).json({ error: 'All fields except description are required' });
+  }
+
+  const newItem = {
+    itemName,
+    locationFound,
+    foundDate,
+    category,
+    color,
+    description: description || null,
+    contactEmail,
+    contactPhone,
+    securityQuestion,
+    securityAnswer,
+    status: 'Found',
+    imageUrl: imageUrl || null,
+    userId: userId
+  };
+
+  console.log('File:', req.file); // Debugging log
+  console.log('Body:', req.body); // Debugging log
+  console.log('Image URL:', imageUrl); // Debugging log
+
+  pool.query('INSERT INTO tbl_123_posts SET ?', newItem, (err, result) => {
+    if (err) {
+      logger.error(`Error reporting found item: ${err.message}`);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    res.json({ id: result.insertId, ...newItem });
+  });
+});
+
+// Endpoint to claim an item with security question verification
+router.post('/claim-item/:id', (req, res) => {
+  const itemId = req.params.id;
+  const { answer } = req.body;
+
+  // Validate input
+  if (!answer) {
+    return res.status(400).json({ error: 'Answer is required' });
+  }
+
+  pool.query('SELECT securityAnswer FROM tbl_123_posts WHERE id = ?', [itemId], (err, results) => {
+    if (err) {
+      logger.error(`Error fetching item for claim: ${err.message}`);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    const correctAnswer = results[0].securityAnswer;
+    if (answer === correctAnswer) {
+      logger.info(`Item with ID: ${itemId} claimed successfully`);
+      res.json({ success: true });
+    } else {
+      logger.warn(`Incorrect answer for item with ID: ${itemId}`);
+      res.status(401).json({ error: 'Incorrect answer' });
+    }
+  });
+});
 
 module.exports = router;

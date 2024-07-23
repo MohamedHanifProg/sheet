@@ -1,5 +1,3 @@
-
-
 document.addEventListener("DOMContentLoaded", function () {
     initDataFetching();
     initFilters();
@@ -42,21 +40,21 @@ function displayItems(data) {
     cardLinks.forEach(link => {
         link.addEventListener('click', function(event) {
             event.preventDefault();
-            const itemName = this.getAttribute('data-item-name');
-            localStorage.removeItem('selectedItemName');
-            localStorage.setItem('selectedItemName', itemName);
+            const itemId = this.getAttribute('data-item-id');
+            localStorage.removeItem('selectedItemId');
+            localStorage.setItem('selectedItemId', itemId);
             window.location.href = this.href;
         });
     });
 };
 
 function createCard(item) {
-    const formattedDate = formatDate(item.lostDate);
+    const formattedDate = formatDate(item.foundDate || item.lostDate);
     const formattedTime = formatTime(item.timeLost);
 
     return `
         <div class="col">
-            <a href="item.html" class="card-link" data-item-name="${item.itemName}">
+            <a href="item.html" class="card-link" data-item-id="${item.id}">
                 <div class="card list-item-card">
                     <img src="${item.imageUrl}" class="card-img-top" alt="${item.itemName}">
                     <div class="card-body">
@@ -65,7 +63,7 @@ function createCard(item) {
                             <div class="card-detail"><i class="bi bi-calendar"></i> <span>${formattedDate}</span></div>
                             <div class="card-detail"><i class="bi bi-tag"></i> <span>${item.category}</span></div>
                             <div class="card-detail"><i class="bi bi-clock"></i> <span>${formattedTime}</span></div>
-                            <div class="card-detail"><i class="bi bi-geo-alt"></i> <span>${item.locationLost}</span></div>
+                            <div class="card-detail"><i class="bi bi-geo-alt"></i> <span>${item.locationFound || item.locationLost}</span></div>
                         </div>
                         <a href="#" class="status-btn status-${item.status.toLowerCase()}">${item.status}</a>
                     </div>
@@ -88,7 +86,7 @@ function formatTime(timeString) {
 };
 
 function populateFilters(data) {
-    const locations = [...new Set(data.map(item => item.locationLost))];
+    const locations = [...new Set(data.map(item => item.locationFound || item.locationLost))];
     const categories = [...new Set(data.map(item => item.category))];
     const statuses = [...new Set(data.map(item => item.status))];
 
@@ -126,9 +124,9 @@ function applyFilters() {
     const status = document.getElementById('status').value;
 
     const filteredData = originalData.filter(item =>
-        (!fromDate || new Date(item.lostDate) >= new Date(fromDate)) &&
-        (!toDate || new Date(item.lostDate) <= new Date(toDate)) &&
-        (!location || item.locationLost === location) &&
+        (!fromDate || new Date(item.foundDate || item.lostDate) >= new Date(fromDate)) &&
+        (!toDate || new Date(item.foundDate || item.lostDate) <= new Date(toDate)) &&
+        (!location || (item.locationFound || item.locationLost) === location) &&
         (!category || item.category === category) &&
         (!status || item.status === status)
     );
