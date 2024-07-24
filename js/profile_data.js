@@ -96,38 +96,92 @@ const editItem = (id) => {
 const populateEditForm = (item) => {
     document.getElementById('editItemId').value = item.id;
     document.getElementById('editItemName').value = item.itemName;
-    document.getElementById('editLocationLost').value = item.locationLost || item.locationFound; // Handle both cases
-    document.getElementById('editLostDate').value = item.lostDate || item.foundDate;
-    document.getElementById('editTimeLost').value = item.timeLost;
-    document.getElementById('editCategory').value = item.category;
-    document.getElementById('editItemColor').value = item.color;
-    document.getElementById('editDescription').value = item.description;
-    document.getElementById('editContactEmail').value = item.contactEmail;
-    document.getElementById('editContactPhone').value = item.contactPhone;
+    document.getElementById('editLocationLost').value = item.locationLost || item.locationFound;
+    
+    const lostDate = item.lostDate ? formatDateForInput(item.lostDate) : null;
+    const foundDate = item.foundDate ? formatDateForInput(item.foundDate) : null;
+    
+    if (lostDate) {
+        document.getElementById('editLostDate').value = lostDate;
+    } else if (foundDate) {
+        document.getElementById('editLostDate').value = foundDate;
+    } else {
+        document.getElementById('editLostDate').value = ''; // Set to empty string if no date is available
+    }
+    
+    document.getElementById('editTimeLost').value = item.timeLost || '';
+    document.getElementById('editCategory').value = item.category || '';
+    document.getElementById('editItemColor').value = item.color || '';
+    document.getElementById('editDescription').value = item.description || '';
+    document.getElementById('editContactEmail').value = item.contactEmail || '';
+    document.getElementById('editContactPhone').value = item.contactPhone || '';
+};
+
+const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().substring(0, 10);
 };
 
 const handleEditFormSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const itemId = formData.get('editItemId');
+    const file = formData.get('editAddImage');
+
+    if (file && file.size > 0) {
+        uploadImage(file)
+            .then(imageUrl => {
+                return submitEditFormData(formData, itemId, imageUrl);
+            })
+            .catch(error => {
+                console.error('Failed to upload image:', error);
+                showNotification('Failed to upload image. Please try again.');
+            });
+    } else {
+        submitEditFormData(formData, itemId);
+    }
+};
+
+const uploadImage = (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Image upload failed');
+        return response.json();
+    })
+    .then(data => data.imageUrl);
+};
+
+const submitEditFormData = (formData, itemId, imageUrl = null) => {
+    const updatedData = {
+        itemName: formData.get('editItemName'),
+        locationLost: formData.get('editLocationLost'),
+        locationFound: formData.get('editLocationLost'),
+        lostDate: formData.get('editLostDate'),
+        timeLost: formData.get('editTimeLost'),
+        category: formData.get('editCategory'),
+        color: formData.get('editItemColor'),
+        description: formData.get('editDescription'),
+        contactEmail: formData.get('editContactEmail'),
+        contactPhone: formData.get('editContactPhone')
+    };
+
+    if (imageUrl) {
+        updatedData.imageUrl = imageUrl;
+    }
 
     fetch(`${API_URL}/items/${itemId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            itemName: formData.get('editItemName'),
-            locationLost: formData.get('editLocationLost'),
-            locationFound: formData.get('editLocationLost'), // Ensure both fields are handled
-            lostDate: formData.get('editLostDate'),
-            timeLost: formData.get('editTimeLost'),
-            category: formData.get('editCategory'),
-            color: formData.get('editItemColor'),
-            description: formData.get('editDescription'),
-            contactEmail: formData.get('editContactEmail'),
-            contactPhone: formData.get('editContactPhone')
-        })
+        body: JSON.stringify(updatedData)
     })
     .then(response => {
         if (!response.ok) {

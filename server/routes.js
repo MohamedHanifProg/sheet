@@ -118,24 +118,30 @@ router.post('/items', (req, res) => {
 });
 
 // Endpoint to update an item
-router.put('/items/:id', upload.none(), (req, res) => {
+router.put('/items/:id', upload.single('editAddImage'), (req, res) => {
   const itemId = req.params.id;
   const updatedItem = req.body;
-  
+
+  if (req.file) {
+      updatedItem.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+  }
+
   if (updatedItem.locationLost) {
-    updatedItem.locationFound = updatedItem.locationLost; // Handle both cases
+      updatedItem.locationFound = updatedItem.locationLost;
   }
 
   logger.info(`Updating item ID ${itemId}: ${JSON.stringify(updatedItem)}`);
   pool.query('UPDATE tbl_123_posts SET ? WHERE id = ?', [updatedItem, itemId], (err) => {
-    if (err) {
-      logger.error(`Error updating item ID ${itemId}: ${err.message}`);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
-    logger.info(`Item ID ${itemId} updated`);
-    res.json({ success: true });
+      if (err) {
+          logger.error(`Error updating item ID ${itemId}: ${err.message}`);
+          return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      logger.info(`Item ID ${itemId} updated`);
+      res.json({ success: true });
   });
 });
+
+
 
 // Endpoint to delete an item and its image
 router.delete('/items/:id', (req, res) => {

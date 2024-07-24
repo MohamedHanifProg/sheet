@@ -12,3 +12,7 @@
 2024-07-23T12:51:25.002Z error: Error reporting found item: ER_BAD_FIELD_ERROR: Unknown column 'locationFound' in 'field list'
 2024-07-23T12:54:13.911Z error: Error reporting found item: ER_BAD_FIELD_ERROR: Unknown column 'locationFound' in 'field list'
 2024-07-23T13:07:20.458Z error: Error deleting image file: ENOENT: no such file or directory, unlink 'C:\shenkar\dev43\first_submition\server\uploads\1721678207859-Webfirstsub.JPG'
+2024-07-24T11:37:35.044Z error: Error fetching limited items: connect ETIMEDOUT
+2024-07-24T11:37:36.935Z error: Error fetching limited items: connect ETIMEDOUT
+2024-07-24T11:37:43.179Z error: Error fetching limited items: connect ETIMEDOUT
+2024-07-24T11:37:53.193Z error: Error fetching limited items: connect ETIMEDOUT
