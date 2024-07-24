@@ -1153,7 +1153,6 @@ img.img-fluid {
         margin-top: 50px;
     }
 }
-
 /* Adjust button size and margin for extra large screens (large desktops) */
 @media (min-width: 1200px) {
     .mt-4 .btn.btn-primary {
@@ -1164,7 +1163,6 @@ img.img-fluid {
         
     }
 }
-
 @media (max-width: 1200px) {
     .item-box {
         width: 100%;
